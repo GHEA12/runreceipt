@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunReceipt — Verify an agent run</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  h1 { font-size: 1.5rem; margin-bottom: .25rem; }
+  .sub { opacity: .75; margin-top: 0; }
+  label { display: block; font-weight: 600; margin: 1.1rem 0 .3rem; }
+  textarea { width: 100%; box-sizing: border-box; font-family: ui-monospace, monospace; font-size: .8rem; }
+  input[type="text"] { width: 100%; box-sizing: border-box; font-family: ui-monospace, monospace; font-size: .85rem; padding: .35rem; }
+  button { padding: .5rem 1rem; font-size: 1rem; cursor: pointer; margin: .4rem .4rem 0 0; }
+  .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: end; }
+  .row > div { flex: 1; min-width: 220px; }
+  #result { margin-top: 1.2rem; padding: 1rem; border-radius: 8px; display: none; }
+  #result.pass { display: block; background: #14532d; color: #f0fdf4; }
+  #result.fail { display: block; background: #7f1d1d; color: #fef2f2; }
+  #result ul { margin: .4rem 0 0; }
+  code { font-size: .85em; word-break: break-all; }
+  footer { margin-top: 2rem; font-size: .85rem; opacity: .7; }
+</style>
+</head>
+<body>
+<h1>RunReceipt — verify an agent run</h1>
+<p class="sub">Paste a run log and its anchored copy. This page recomputes every
+SHA-256 hash locally in your browser and compares — if a single byte was altered
+after anchoring, verification fails. Nothing is uploaded anywhere.</p>
+
+<label for="logInput">1. Run log (JSON)</label>
+<textarea id="logInput" rows="10" placeholder='{"version":1,"runId":"run-...",...}'></textarea>
+<button id="loadSampleLog" type="button">Load sample run</button>
+
+<label for="anchorInput">2. Anchored payload (the exact bytes stored on Arweave / in the anchor registry)</label>
+<textarea id="anchorInput" rows="6" placeholder="Canonical JSON payload as anchored"></textarea>
+<div class="row">
+  <div>
+    <label for="txInput">…or fetch from Arweave by transaction id</label>
+    <input id="txInput" type="text" placeholder="Arweave tx id">
+  </div>
+  <div><button id="fetchTx" type="button">Fetch from arweave.net</button></div>
+</div>
+<button id="loadSampleAnchor" type="button">Load sample anchored payload</button>
+
+<label for="prevInput">3. (Optional) Previous run's log hash — checks the hash-chain link</label>
+<input id="prevInput" type="text" placeholder="64 hex chars, or leave empty if this is the first run">
+
+<p><button id="verifyBtn" type="button"><strong>Verify run</strong></button></p>
+
+<div id="result"></div>
+
+<footer>RunReceipt by Indra Dwi Junianto. Verification logic: canonical JSON
+(sorted keys) + SHA-256 via the browser's SubtleCrypto — the same algorithm as
+the reference Node implementation in <code>src/canonical.js</code> /
+<code>src/verify.js</code>.</footer>
+
+<script>
+'use strict';
+// === CORE START ===
+// Canonical JSON: recursively sorted keys, deterministic serialization.
+// Must stay byte-compatible with src/canonical.js.
+function canonicalStringify(value) {
+  if (value === null) return 'null';
+  const t = typeof value;
+  if (t === 'string') return JSON.stringify(value);
+  if (t === 'boolean') return value ? 'true' : 'false';
+  if (t === 'number') {
+    if (!Number.isFinite(value)) throw new Error('non-finite number in canonical JSON');
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) return '[' + value.map(canonicalStringify).join(',') + ']';
+  if (t === 'object') {
+    const keys = Object.keys(value).sort();
+    return '{' + keys.map((k) => JSON.stringify(k) + ':' + canonicalStringify(value[k])).join(',') + '}';
+  }
+  throw new Error('unsupported type in canonical JSON: ' + t);
+}
+
+async function sha256Hex(text) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function hashValue(value) {
+  return sha256Hex(canonicalStringify(value));
+}
+
+// Mirrors src/verify.js. anchoredPayload may be null (integrity-only check).
+// expectedPrev: undefined = skip chain check, null = expect first-in-chain.
+async function verifyLog(log, anchoredPayload, expectedPrev) {
+  const failures = [];
+  if (await hashValue(log.task.input) !== log.task.inputHash) failures.push('input_hash_mismatch');
+  if (await hashValue(log.output) !== log.outputHash) failures.push('output_hash_mismatch');
+  const rest = { ...log };
+  const claimed = rest.logHash;
+  delete rest.logHash;
+  if (await hashValue(rest) !== claimed) failures.push('log_hash_mismatch');
+  if (expectedPrev !== undefined && log.prevLogHash !== expectedPrev) failures.push('chain_link_mismatch');
+  if (anchoredPayload !== null && anchoredPayload !== canonicalStringify(log)) failures.push('anchored_payload_mismatch');
+  return failures;
+}
+// === CORE END ===
+
+const $ = (id) => document.getElementById(id);
+
+$('loadSampleLog').addEventListener('click', async () => {
+  $('logInput').value = await (await fetch('sample-run.json')).text();
+});
+$('loadSampleAnchor').addEventListener('click', async () => {
+  const sample = await (await fetch('sample-anchor.json')).json();
+  $('anchorInput').value = sample.payload;
+});
+$('fetchTx').addEventListener('click', async () => {
+  const tx = $('txInput').value.trim();
+  if (!tx) return;
+  $('anchorInput').value = 'fetching…';
+  try {
+    const res = await fetch('https://arweave.net/' + encodeURIComponent(tx));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    $('anchorInput').value = await res.text();
+  } catch (err) {
+    $('anchorInput').value = '';
+    alert('Fetch failed: ' + err.message);
+  }
+});
+
+$('verifyBtn').addEventListener('click', async () => {
+  const box = $('result');
+  box.className = '';
+  box.style.display = 'block';
+  let log;
+  try {
+    log = JSON.parse($('logInput').value);
+  } catch (err) {
+    box.className = 'fail';
+    box.innerHTML = '<strong>FAIL</strong> — run log is not valid JSON: ' + err.message;
+    return;
+  }
+  const anchored = $('anchorInput').value.trim() ? $('anchorInput').value : null;
+  const prevText = $('prevInput').value.trim();
+  const expectedPrev = prevText === '' ? undefined : prevText;
+  try {
+    const failures = await verifyLog(log, anchored, expectedPrev);
+    if (anchored === null) failures.push('no anchored payload provided (integrity checks only)');
+    if (failures.length === 0) {
+      box.className = 'pass';
+      box.innerHTML = '<strong>VERIFIED</strong> — run <code>' + log.runId + '</code> happened exactly as recorded.' +
+        '<br>logHash <code>' + log.logHash + '</code>';
+    } else {
+      box.className = 'fail';
+      box.innerHTML = '<strong>FAIL</strong> — this run does not verify:<ul>' +
+        failures.map((f) => '<li><code>' + f + '</code></li>').join('') + '</ul>';
+    }
+  } catch (err) {
+    box.className = 'fail';
+    box.innerHTML = '<strong>FAIL</strong> — ' + err.message;
+  }
+});
+</script>
+</body>
+</html>
