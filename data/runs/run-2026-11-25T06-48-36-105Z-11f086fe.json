@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "runId": "run-2026-11-25T06-48-36-105Z-11f086fe",
+  "agent": {
+    "name": "runreceipt-agent",
+    "model": "runreceipt-rules-v1"
+  },
+  "task": {
+    "type": "listing-check",
+    "input": {
+      "text": "Crypto doubler! Guaranteed 100% safe, double your coins in 24 hours. Send deposit first to activate. Hurry, limited time. DM on Telegram only, no escrow.\n"
+    },
+    "inputHash": "038b6a354ed3b524e745b969873ce4464d7a7855c300d727abdbbda10e81a959"
+  },
+  "startedAt": "2026-11-25T06:48:36.105Z",
+  "finishedAt": "2026-11-25T06:48:36.106Z",
+  "durationMs": 1,
+  "steps": [
+    {
+      "step": "extract_price",
+      "found": false
+    },
+    {
+      "step": "red_flag_scan",
+      "patternsChecked": 7,
+      "flagsRaised": 6
+    },
+    {
+      "step": "completeness_check",
+      "score": 1,
+      "of": 3
+    }
+  ],
+  "output": {
+    "verdict": "fail",
+    "redFlags": [
+      "absolute_safety_claim",
+      "unrealistic_return_claim",
+      "upfront_payment_request",
+      "pressure_tactic",
+      "off_platform_contact",
+      "unsafe_payment_method"
+    ],
+    "priceMention": null,
+    "wordCount": 25,
+    "completeness": {
+      "hasPrice": false,
+      "hasDescription": true,
+      "hasContact": false
+    }
+  },
+  "outputHash": "436d5947d2ec4cd86e78650839f741dff2108103d28c6191dfd094ce1fcb7fe8",
+  "prevLogHash": "db01db841252bef8f77961a76caf399aa21f1732e1ac3bf9da130922e87c5aec",
+  "logHash": "a5824f6e0442d03cc07829b439b131ffec9be5cf417eaa5279d4a4e25300f1b3"
+}

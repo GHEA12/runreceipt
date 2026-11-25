@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "runId": "run-2026-11-25T06-48-35-982Z-41076b2d",
+  "agent": {
+    "name": "runreceipt-agent",
+    "model": "runreceipt-rules-v1"
+  },
+  "task": {
+    "type": "listing-check",
+    "input": {
+      "text": "Vintage camera lens, 50mm f1.8, good condition. Price $120. Ships within 2 days, escrow accepted, contact via marketplace chat. Includes original box, lens cap, and a cleaning cloth. No scratches on the glass.\n"
+    },
+    "inputHash": "3f3ea4347ad75acc76d3963b84aa278dbc0f32079474ac19af2a65c1b53e6ad4"
+  },
+  "startedAt": "2026-11-25T06:48:35.982Z",
+  "finishedAt": "2026-11-25T06:48:35.983Z",
+  "durationMs": 1,
+  "steps": [
+    {
+      "step": "extract_price",
+      "found": true
+    },
+    {
+      "step": "red_flag_scan",
+      "patternsChecked": 7,
+      "flagsRaised": 0
+    },
+    {
+      "step": "completeness_check",
+      "score": 2,
+      "of": 3
+    }
+  ],
+  "output": {
+    "verdict": "pass",
+    "redFlags": [],
+    "priceMention": "$120.",
+    "wordCount": 33,
+    "completeness": {
+      "hasPrice": true,
+      "hasDescription": true,
+      "hasContact": false
+    }
+  },
+  "outputHash": "73701fcd5cc47b6edd99794c29a975343b5c3b025cfaa28335dd0f35162891a2",
+  "prevLogHash": null,
+  "logHash": "db01db841252bef8f77961a76caf399aa21f1732e1ac3bf9da130922e87c5aec"
+}

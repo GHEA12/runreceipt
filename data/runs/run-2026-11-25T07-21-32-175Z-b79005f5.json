@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "runId": "run-2026-11-25T07-21-32-175Z-b79005f5",
+  "agent": {
+    "name": "runreceipt-agent",
+    "model": "runreceipt-rules-v1"
+  },
+  "task": {
+    "type": "listing-check",
+    "input": {
+      "text": "Vintage film lens, clean glass, smooth focus ring. Price $120. Escrow accepted, ships worldwide."
+    },
+    "inputHash": "f80e4d269ba09ddd32a1279777917c665a665dce151afefad8a7c45b65ae72e2"
+  },
+  "startedAt": "2026-11-25T07:21:32.175Z",
+  "finishedAt": "2026-11-25T07:21:32.176Z",
+  "durationMs": 1,
+  "steps": [
+    {
+      "step": "extract_price",
+      "found": true
+    },
+    {
+      "step": "red_flag_scan",
+      "patternsChecked": 7,
+      "flagsRaised": 0
+    },
+    {
+      "step": "completeness_check",
+      "score": 1,
+      "of": 3
+    }
+  ],
+  "output": {
+    "verdict": "review",
+    "redFlags": [],
+    "priceMention": "$120.",
+    "wordCount": 14,
+    "completeness": {
+      "hasPrice": true,
+      "hasDescription": false,
+      "hasContact": false
+    }
+  },
+  "outputHash": "527f4ad6ca023907a7df0859591c807eef1b1a56295edb63dc5fff7f4fd9bbf1",
+  "prevLogHash": "b348407c45c4b4b63c4a789c84e33fb88ccb3a26adf9f8584b958602ea129307",
+  "logHash": "3678b04cdda20e30149ec34404ece0a1d6fbe552ed9c5985fcb64ad06e1aedcc"
+}

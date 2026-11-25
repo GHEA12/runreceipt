@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "runId": "run-2026-11-25T06-48-36-225Z-e6b2470c",
+  "agent": {
+    "name": "runreceipt-agent",
+    "model": "runreceipt-rules-v1"
+  },
+  "task": {
+    "type": "doc-digest",
+    "input": {
+      "text": "# RunReceipt — Decentralize AI Hackathon, Concept 1\n\n**Project:** RunReceipt — verifiable agent run-logs anchored on Arweave\n**Entrant:** Indra Dwi Junianto\n**Event:** Decentralize AI Hackathon by HackerNoon (Round 2, deadline 27 Feb 2027)\n**Target categories:** Arweave (permanent storage / provenance), verifiable & reproducible AI\n\n## The problem\n\nAI agents increasingly do real work — checking listings, screening documents,\nresearching, drafting — but their work product is usually a chat transcript or\nnothing at all. There is no durable, tamper-evident record of *what the agent\nwas asked, what it produced, and when*. If an agent's output is disputed a week\nlater, neither side can prove what actually happened. Agent work needs receipts.\n\n## The concept\n\nRunReceipt gives every agent run a permanent, verifiable receipt:\n\n1. An agent performs a small, well-defined task (v1 ships two: a structured\n   listing check and a document digest).\n2. The runner produces a **structured run log** (JSON): task type, the input\n   and its SHA-256 hash, the output and its hash, start/finish timestamps, the\n   model/engine that produced the output, and the hash of the previous run —\n   a hash chain across runs, so deleting or reordering history is detectable.\n3. The canonical log is **anchored on Arweave**: the full log is stored\n   permanently as a transaction payload, tagged with the run id and log hash.\n   Arweave's pay-once, store-forever model fits receipts exactly — a receipt\n   you have to keep paying rent on is not a receipt.\n4. A **public verify page** lets anyone check a run: paste the run log (or\n   fetch it by Arweave transaction id) and the page recomputes every hash,\n   compares it against the anchored copy, and reports pass/fail. If a single\n   byte of the log was altered after anchoring, verification fails.\n\nThis reuses the receipts pattern proven in FabReceipt (OKX X Layer TapeOut\nentry): block-pinned snapshots, per-item receipts, and hash anchoring — moved\nfrom processor telemetry to agent work records, and from a testnet anchor\ncontract to permanent Arweave storage.\n\n## v1 scope (this build)\n\n- Runner with 2 real, deterministic tasks (listing check, document digest);\n  the log schema is task-agnostic, so LLM tasks plug in later.\n- Canonical-JSON + SHA-256 run logs with hash chaining.\n- Arweave anchoring behind config: real integration (arweave-js, wallet JWK\n  from `.env`) plus a **mock mode** with a local anchor registry, so the full\n  flow is provable today with zero credentials.\n- Static, dependency-free verify page (hashes recomputed in the browser with\n  SubtleCrypto).\n- Automated tests: run → log → anchor (mock) → verify round-trip, tamper\n  detection on input, output, and chain link.\n- HackerNoon article draft covering Context / Strategy / Model with the\n  universal tags plus the Arweave sponsor tags.\n\n## Out of scope for v1\n\n- No mainnet Arweave upload until Karis provides a wallet (mock only).\n- No Nosana deployment (not needed for this concept).\n- No publishing — the article stays a draft for Karis's review.\n\n## Why this can win something\n\n- Hits two named judging themes at once: permanent storage of inference/run\n  logs on Arweave, and verifiable/reproducible AI.\n- Evidence is trivially verifiable by judges: Arweave TX ids and a public\n  verify page, matching the FAQ's demand for working code and reproducible\n  proof over mockups.\n- Small, honest, finished scope beats a broad unfinished platform.\n"
+    },
+    "inputHash": "89b0761b8746d6be580ca8d199e61f7509b82995f45648557ab17aedc5c72232"
+  },
+  "startedAt": "2026-11-25T06:48:36.225Z",
+  "finishedAt": "2026-11-25T06:48:36.238Z",
+  "durationMs": 13,
+  "steps": [
+    {
+      "step": "extract_headings",
+      "count": 6
+    },
+    {
+      "step": "word_count",
+      "words": 545
+    },
+    {
+      "step": "key_terms",
+      "count": 8
+    }
+  ],
+  "output": {
+    "wordCount": 545,
+    "lineCount": 69,
+    "readingTimeMinutes": 3,
+    "headings": [
+      "RunReceipt — Decentralize AI Hackathon, Concept 1",
+      "The problem",
+      "The concept",
+      "v1 scope (this build)",
+      "Out of scope for v1",
+      "Why this can win something"
+    ],
+    "keyTerms": [
+      {
+        "term": "arweave",
+        "count": 11
+      },
+      {
+        "term": "hash",
+        "count": 8
+      },
+      {
+        "term": "agent",
+        "count": 7
+      },
+      {
+        "term": "with",
+        "count": 7
+      },
+      {
+        "term": "verifiable",
+        "count": 5
+      },
+      {
+        "term": "output",
+        "count": 4
+      },
+      {
+        "term": "page",
+        "count": 4
+      },
+      {
+        "term": "permanent",
+        "count": 4
+      }
+    ]
+  },
+  "outputHash": "69e5280f7e68e2c71f73bfefec2691dad3079bca9b9e0ecf1c3dc7478aad0411",
+  "prevLogHash": "a5824f6e0442d03cc07829b439b131ffec9be5cf417eaa5279d4a4e25300f1b3",
+  "logHash": "b348407c45c4b4b63c4a789c84e33fb88ccb3a26adf9f8584b958602ea129307"
+}
